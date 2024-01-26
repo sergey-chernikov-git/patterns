@@ -43,7 +43,7 @@ class Subject(AbstractSubject):
                 observer.update(self)
 
 
-class Data(Subject):
+class DataSubject(Subject):
     def __init__(self, name):
         Subject.__init__(self)
         self.name = name
@@ -74,7 +74,7 @@ class DataPopUpMessageViewer(AbstractObserver):
         print(f"DataPopUpMessageViewer: {subject.name} - {subject.data} into file")
 
 
-observable = Data("Data observable")
+observable = DataSubject("Data observable")
 
 data_console_viewer_observer = DataConsoleViewer()
 data_file_viewer_observer = DataFileViewer()
