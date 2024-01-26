@@ -1,27 +1,27 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractObservable(ABC):
+class AbstractSubject(ABC):
     @abstractmethod
     def subscribe(self, observer):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def unsubscribe(self, observer):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
-    def notify(self, observer):
-        pass
+    def notify(self, modifier=None):
+        raise NotImplementedError
 
 
 class AbstractObserver(ABC):
     @abstractmethod
-    def notify(self, observer):
-        pass
+    def update(self, subject):
+        raise NotImplementedError
 
 
-class Observable(AbstractObservable):
+class Subject(AbstractSubject):
     def __init__(self):
         self.observers = []
 
@@ -32,27 +32,58 @@ class Observable(AbstractObservable):
             self.observers.append(observer)
 
     def unsubscribe(self, observer):
-        self.observers.remove(observer)
+        try:
+            self.observers.remove(observer)
+        except Exception as e:
+            print(e)
 
-    def notify(self, message):
+    def notify(self, modifier=None):
         for observer in self.observers:
-            observer.notify(message)
+            if observer != modifier:
+                observer.update(self)
 
 
-class ConsoleObserver(AbstractObserver):
-    def notify(self, message):
-        print(message)
+class Data(Subject):
+    def __init__(self, name):
+        Subject.__init__(self)
+        self.name = name
+        self._data = None
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, value=None):
+        self._data = value
+        self.notify()
 
 
-class FileObserver(AbstractObserver):
-    def notify(self, message):
-        with open("observer.log", mode="a+") as file:
-            file.write(message + '\n')
-        file.close()
+class DataConsoleViewer(AbstractObserver):
+    def update(self, subject):
+        print(f"DataConsoleViewer: {subject.name} - {subject.data}  on console")
 
 
-observable = Observable()
-observable.subscribe(ConsoleObserver())
-observable.subscribe(FileObserver())
+class DataFileViewer(AbstractObserver):
+    def update(self, subject):
+        print(f"DataFileViewer: {subject.name} - {subject.data} into file")
 
-observable.notify("test observer")
+
+class DataPopUpMessageViewer(AbstractObserver):
+    def update(self, subject):
+        print(f"DataPopUpMessageViewer: {subject.name} - {subject.data} into file")
+
+
+observable = Data("Data observable")
+
+data_console_viewer_observer = DataConsoleViewer()
+data_file_viewer_observer = DataFileViewer()
+data_pop_up_message_viewer_observer = DataPopUpMessageViewer()
+
+observable.subscribe(data_console_viewer_observer)
+observable.subscribe(data_file_viewer_observer)
+observable.subscribe(data_pop_up_message_viewer_observer)
+
+observable.data = "Test Data 1"
+observable.data = "Test Data 2"
+observable.data = "Test Data 3"
